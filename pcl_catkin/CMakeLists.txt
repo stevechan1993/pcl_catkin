@@ -4,6 +4,15 @@ project(pcl_catkin)
 find_package(catkin_simple REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem thread)
 
+if(APPLE)
+  find_package(LLVM HINTS /usr/local/opt/llvm/lib/cmake/llvm)
+  set(CMAKE_CXX_COMPILER ${LLVM_TOOLS_BINARY_DIR}/clang++)
+  set(PCL_CXX_FLAGS "${PCL_CXX_FLAGS} -fopenmp")
+else()
+  find_package(OpenMP REQUIRED)
+  set(PCL_CXX_FLAGS "${PCL_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 catkin_simple(ALL_DEPS_REQUIRED)
 
 include(ExternalProject)
@@ -23,8 +32,10 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/pcl_find_sse.cmake")
 PCL_CHECK_FOR_SSE()
 
 # Flags that PCL defines by default, see https://github.com/PointCloudLibrary/pcl/blob/master/CMakeLists.txt#L112
-SET(PCL_CXX_FLAGS "-Wall -Wextra -Wno-unknown-pragmas -fno-strict-aliasing -Wno-format-extra-args -Wno-sign-compare -Wno-invalid-offsetof -Wno-conversion -DBOOST_UUID_RANDOM_GENERATOR_COMPAT ${SSE_FLAGS} -Wabi")
+SET(PCL_CXX_FLAGS "${PCL_CXX_FLAGS} -Wall -Wextra -Wno-unknown-pragmas -fno-strict-aliasing -Wno-format-extra-args -Wno-sign-compare -Wno-invalid-offsetof -Wno-conversion -DBOOST_UUID_RANDOM_GENERATOR_COMPAT ${SSE_FLAGS} -Wabi")
 SET(PCL_CXX_FLAGS "${PCL_CXX_FLAGS} -std=c++14")
+
+
 
 ExternalProject_Add(pcl_src
   GIT_REPOSITORY  https://github.com/PointCloudLibrary/pcl
@@ -32,6 +43,7 @@ ExternalProject_Add(pcl_src
   UPDATE_COMMAND ""
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${CATKIN_DEVEL_PREFIX}
              -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
              -DCMAKE_CXX_FLAGS:STRING=${PCL_CXX_FLAGS}
              -DPCL_SHARED_LIBS=TRUE
              "-DCMAKE_CXX_FLAGS_${UC_BUILD_TYPE}=${CMAKE_CXX_FLAGS_${UC_BUILD_TYPE}} ${PCL_CXX_FLAGS}"
