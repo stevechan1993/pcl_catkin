@@ -11,5 +11,9 @@ such that you have them matching this PCL version.
 
 ## Install dependency
 ```
+This package has three dependecies: Eigen, libbullet-dev and catkin_simple
+Eigen need build from source code
+catkin_simple should put into catkin_ws/src
 sudo apt install libbullet-dev
+
 ```
